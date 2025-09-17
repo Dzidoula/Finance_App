@@ -1,0 +1,6 @@
+falcon
+gunicorn==20.1.0
+requests
+redis
+pymongo==3.9.0
+pyres
