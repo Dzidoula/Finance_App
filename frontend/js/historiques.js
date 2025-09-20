@@ -268,21 +268,21 @@ document.addEventListener('DOMContentLoaded', () => {
 */
 
 
-import { afficherListe, add_historique_funct, submitInfo, closeModal, getData, getStats, createFinancialChart, createModal } from "./functions.js";
+import { afficherListe, add_historique_funct, submitInfo, closeModal, getData, getStats, createFinancialChart, createModal,filtreDate, getStatsSousCtMontant,createFinancialChart2, showDatePicker, hideDatePicker } from "./functions.js";
 
 const gene_liste = [];
 
 const section_affichage = document.querySelector(".affichage");
 
 // Fonction pour gérer la navigation et l'affichage des sections
-async function handleNavigation(sectionId, other_params={}, filtreValue="all") {
+async function handleNavigation(sectionId, handle_payload={"range":"all"}, filtreTypeValue="all",filtreDateValue="") {
   section_affichage.innerHTML = "";
 
   if (sectionId === '#historiques') {
     console.log('Mise à jour des historiques');
     let donne;
-    if (other_params){
-      donne = await getData(other_params);
+    if (handle_payload){
+      donne = await getData(handle_payload);
     }else{
       donne = await getData();
       
@@ -328,21 +328,178 @@ async function handleNavigation(sectionId, other_params={}, filtreValue="all") {
       filtreSelect.appendChild(option);
     });
     
-    if (filtreValue) {
-      filtreSelect.value = filtreValue;
+    if (filtreTypeValue) {
+      filtreSelect.value = filtreTypeValue;
     }
     
     filtreSelect.addEventListener('change', async () => {
+      const range = document.getElementById('filtre-date').value;
       const type = document.getElementById('filtre').value;
-      if (type) {
-        const payload = { "type": type };
-        handleNavigation('#historiques', payload, type);
-      }
+      let payload = {};
+      if (type){
+        payload["type"] = type ;
+      };
+      if (range){
+        payload["range"] = range;
+      };
+      handleNavigation('#historiques', payload, type, range);
     });
     
     filtreContainer.appendChild(filtreIcon);
     filtreContainer.appendChild(filtreSelect);
+
+    // Filtre Date ///////////////////////////////////////////////////////////////////////////////////////
+    const filtreContainerDate = document.createElement('div');
+    filtreContainerDate.className = 'filtre-container-date';
     
+    const filtreIconDate = document.createElement('i');
+    filtreIconDate.className = "fas fa-filter";
+    
+    const filtreSelectDate = document.createElement('select');
+    filtreSelectDate.id = 'filtre-date';
+    filtreSelectDate.name = 'choix';
+    filtreSelectDate.className = 'filtre-select-date';
+    
+    const filtreDefaultOptionDate = document.createElement('option');
+    filtreDefaultOptionDate.value = '';
+    filtreDefaultOptionDate.disabled = true;
+    filtreDefaultOptionDate.selected = true;
+    filtreDefaultOptionDate.textContent = 'Filtrer par date';
+    filtreSelectDate.appendChild(filtreDefaultOptionDate);
+    
+    ['day', 'week', 'month','custom'].forEach(type => {
+      const option = document.createElement('option');
+      option.value = type;
+      option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+      filtreSelectDate.appendChild(option);
+    });
+
+    //********************* Block for custom *********************//
+    const customDiv = document.createElement('div');
+    customDiv.id = 'customDate';
+    customDiv.className = 'custom-date';
+    // customDiv.style.display = 'none';
+    // labels and inputs
+    const labelStartDate = document.createElement('label');
+    labelStartDate.className = 'start-date-label';
+    labelStartDate.textContent = 'Start Date';
+    
+    const labelEndDate = document.createElement('label');
+    labelEndDate.className = 'end-date-label';
+    labelEndDate.textContent = 'End Date';
+
+    const inputStartDate = document.createElement('input');
+    inputStartDate.type = 'date';
+    inputStartDate.id = 'start-date';
+    inputStartDate.addEventListener('change', ()=>{
+      if (inputEndDate.value){
+        
+        if (inputStartDate.value < inputEndDate.value){ 
+          console.warn("Start Date +++++ ===== ", inputStartDate.value);
+          console.warn("End Date +++++ ===== ", inputEndDate.value);
+
+          const range = document.getElementById('filtre-date').value;
+          const type = document.getElementById('filtre').value;
+          let payload = {};
+          if (type){
+            payload = {"type": type };
+          }
+          if (range){
+            payload["range"] = range;
+            payload["start_date"] = inputStartDate.value;
+            payload["end_date"] = inputEndDate.value;
+          }
+          inputStartDate.value = "";
+          inputEndDate.value = "";
+          hideDatePicker(customDiv);
+          handleNavigation('#historiques', payload, type, range);
+
+        }else{
+          inputStartDate.value = "";
+          inputEndDate.value = "";
+        };
+        
+      }
+    });
+
+    const inputEndDate = document.createElement('input');
+    inputEndDate.type = 'date';
+    inputEndDate.id = 'end-date';
+    inputEndDate.addEventListener('change', ()=>{
+      if (inputStartDate.value){
+        
+        if (inputStartDate.value < inputEndDate.value){ 
+          console.warn("Start Date +++++ ===== ", inputStartDate.value);
+          console.warn("End Date +++++ ===== ", inputEndDate.value);
+
+          const range = document.getElementById('filtre-date').value;
+          const type = document.getElementById('filtre').value;
+          const start_date = new Date(inputStartDate.value).toLocaleDateString('fr-CA');
+          const end_date = new Date(inputEndDate.value).toLocaleDateString('fr-CA');
+          let payload = {};
+          if (type){
+            payload = {"type": type };
+          }
+          if (range){
+            payload["range"] = range;
+            payload["start_date"] = `${start_date}T23:59:59`;
+            payload["end_date"] = `${end_date}T23:59:59`;
+          }
+          inputStartDate.value = "";
+          inputEndDate.value = "";
+          hideDatePicker(customDiv);
+          console.warn("PAYLOAD +++++ ===== ", payload);
+          handleNavigation('#historiques', payload, type, range);
+
+        }else{
+          inputStartDate.value = "";
+          inputEndDate.value = "";
+        };
+        
+      }
+      
+    });
+
+    labelStartDate.appendChild(inputStartDate);
+    labelEndDate.appendChild(inputEndDate);
+    customDiv.appendChild(labelStartDate);
+    customDiv.appendChild(labelEndDate);
+
+    if (filtreDateValue) {
+      filtreSelectDate.value = filtreDateValue;
+      if (filtreDateValue === 'custom'){
+        showDatePicker(customDiv);
+        //const customDiv = document.getElementById('customDate');
+        //customDiv.style.display = 'block';
+        //customDiv.style.visibility = 'visible';
+        //customDiv.style.opacity = '1';
+      }
+    }
+    
+    filtreSelectDate.addEventListener('change', async () => {
+      const range = document.getElementById('filtre-date').value;
+      const type = document.getElementById('filtre').value;
+      let payload = {};
+      if (type){
+        payload = {"type": type };
+      }
+      if (range){
+        payload["range"] = range;
+      }
+      handleNavigation('#historiques', payload, type, range);
+    });
+
+    filtreSelectDate.addEventListener('click', ()=>{
+      const range = filtreSelectDate.value;
+      if (range === 'custom'){
+        showDatePicker(customDiv);
+      }
+    });
+    
+    filtreContainerDate.appendChild(filtreIconDate);
+    filtreContainerDate.appendChild(filtreSelectDate);
+    filtreContainerDate.appendChild(customDiv);
+    // Filtre Date end logic ///////////////////////////////////////////////////////////////////////////////////////
     // Bouton d'ajout
     const add_historique = document.createElement("button");
     add_historique.className = "btn-add";
@@ -354,7 +511,9 @@ async function handleNavigation(sectionId, other_params={}, filtreValue="all") {
     
     // Assembler les contrôles
     controlsContainer.appendChild(filtreContainer);
+    controlsContainer.appendChild(filtreContainerDate);
     controlsContainer.appendChild(add_historique);
+    //controlsContainer.appendChild(customDiv);
     
     // Assembler l'en-tête
     header.appendChild(controlsContainer);
@@ -374,9 +533,54 @@ async function handleNavigation(sectionId, other_params={}, filtreValue="all") {
 
   } else if (sectionId === '#home') {
     console.log('Dashboard...');
-    let stats = await getStats();
+    
+    let stats ;
+    let stats_ss_ct_mt ;
+    if (handle_payload){
+      stats = await getStats(handle_payload);
+      stats_ss_ct_mt = await getStatsSousCtMontant(handle_payload);
+    }else{
+      stats = await getStats();
+      stats_ss_ct_mt = await getStatsSousCtMontant();
+      
+    };
+
     section_affichage.innerHTML = "";
     
+    // Conteneur pour les contrôles (filtre)
+    const controlsContainerDashboard = document.createElement('div');
+    controlsContainerDashboard.className = 'controls-container';
+
+    
+    const filtreDashboard = filtreDate(filtreDateValue);
+    const filtreDateDashboard = filtreDashboard[0];
+    const filtreContainerDashboard = filtreDashboard[1];
+    
+    if (filtreDateValue) {
+      filtreDateDashboard.value = filtreDateValue;
+    };
+    // logic pour filtreDate
+    filtreDateDashboard.addEventListener('change', async () => {
+      let range = document.getElementById('filtre-date').value;
+      
+      let payload_dashboard = {};
+      if (range){
+        payload_dashboard["range"] = range;
+      };
+      //console.warn("range ////////  ",range);
+      handleNavigation(sectionId = '#home', handle_payload = payload_dashboard, filtreTypeValue="all",filtreDateValue=range);
+    });
+
+    filtreContainerDashboard.appendChild(filtreDateDashboard);
+    
+
+    // En-tête avec titre et contrôles
+    const header = document.createElement('div');
+    header.className = 'dashboard-header';
+    header.innerHTML = '<h2>DASHBOARD</h2>';
+
+    
+
     // Create dashboard container
     const dashboardContainer = document.createElement('div');
     dashboardContainer.style.width = '100%';
@@ -427,19 +631,41 @@ async function handleNavigation(sectionId, other_params={}, filtreValue="all") {
     chartTitle.style.marginBottom = '20px';
     chartTitle.style.color = '#333';
     
-    const canvas = document.createElement('canvas');
-    canvas.id = 'financialChart';
-    canvas.style.maxHeight = '400px';
+    const canvas_1 = document.createElement('canvas');
+    canvas_1.id = 'financialChart1';
+    canvas_1.style.maxHeight = '400px';
     
     chartContainer.appendChild(chartTitle);
-    chartContainer.appendChild(canvas);
+    chartContainer.appendChild(canvas_1);
+    
+
+    ['financialChart2', 'financialChart3'].forEach(value =>{
+      const canvas_2 = document.createElement('canvas');
+      canvas_2.id = value;
+      canvas_2.style.maxHeight = '400px';
+      chartContainer.appendChild(canvas_2);
+    });
+
+    
+    
     
     dashboardContainer.appendChild(statsContainer);
     dashboardContainer.appendChild(chartContainer);
+
+    //controlsContainerDashboard.appendChild(header);
+    controlsContainerDashboard.appendChild(filtreContainerDashboard);
+    
+    header.appendChild(controlsContainerDashboard);
+
+    section_affichage.appendChild(header);
     section_affichage.appendChild(dashboardContainer);
     
     // Create the chart
     createFinancialChart(stats["result"]);
+
+    Object.entries({'revenu':'financialChart2','depense': 'financialChart3'}).forEach(([type,id])=>{
+      createFinancialChart2(type,stats_ss_ct_mt["result"][type],id);
+    });
 
   } else if (sectionId === '#about') {
     console.log('A propos...');
@@ -460,5 +686,5 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Affiche la section par défaut au chargement (par exemple, #historiques)
-  handleNavigation('#historiques');
+  handleNavigation('#home');
 });

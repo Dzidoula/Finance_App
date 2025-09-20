@@ -188,7 +188,7 @@ export async function afficherListe(liste, container = null) {
 
 export async function getData(params={}) {
   try {
-    const url = 'http://localhost:8002/historiques';
+    const url = 'http://localhost:8000/historiques';
     const query_params = new URLSearchParams(params).toString();
     const ful_url = query_params ? `${url}?${query_params}` : url;
     const response = await fetch(ful_url, {
@@ -213,11 +213,12 @@ export async function getData(params={}) {
   }
 }
 
-export async function getStats() {
+export async function getStats(params={}) {
   try {
-    const url = 'http://localhost:8002/stats';
-
-    const response = await fetch(url, {
+    const url = 'http://localhost:8000/stats';
+    const query_params = new URLSearchParams(params).toString();
+    const ful_url = query_params ? `${url}?${query_params}` : url;
+    const response = await fetch(ful_url, {
       method: 'GET', // Méthode HTTP
       headers: {
         'Content-Type': 'application/json',
@@ -239,13 +240,40 @@ export async function getStats() {
   }
 }
 
+export async function getStatsSousCtMontant(params={}) {
+  try {
+    const url = 'http://localhost:8000/stats_sous_categorie';
+    const query_params = new URLSearchParams(params).toString();
+    const ful_url = query_params ? `${url}?${query_params}` : url;
+    const response = await fetch(ful_url, {
+      method: 'GET', // Méthode HTTP
+      headers: {
+        'Content-Type': 'application/json',
+        // Ajoutez des en-têtes si nécessaire, ex: Authorization
+        // 'Authorization': 'Bearer votre_token'
+      },
+      
+    });
+
+    if (!response.ok) {
+      throw new Error(`Erreur HTTP: ${response.status}`);
+    }
+
+    const data = await response.json(); // Convertir la réponse en JSON
+    console.log(".......*****STATS SS CT MT ******.......  ",data); // Traiter les données
+    return data;
+  } catch (error) {
+    console.error('Erreur lors de la requête GET:', error);
+  }
+}
+
 
 
 
 
 export async function postData(data) {
   try {
-    const response = await fetch('http://localhost:8002/add_historique', {
+    const response = await fetch('http://localhost:8000/add_historique', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -276,7 +304,7 @@ export async function deleteData(data) {
     //  age: 30
     //};
 
-    const response = await fetch('http://localhost:8002/delete_historique', {
+    const response = await fetch('http://localhost:8000/delete_historique', {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -397,15 +425,61 @@ export function createModal() {
   return div;
 }
 
+export function filtreDate(filtreDateValue){
+  const filtreContainerDate = document.createElement('div');
+  filtreContainerDate.className = 'filtre-container-date';
+  
+  const filtreIconDate = document.createElement('i');
+  filtreIconDate.className = "fas fa-filter";
+  
+  const filtreSelectDate = document.createElement('select');
+  filtreSelectDate.id = 'filtre-date';
+  filtreSelectDate.name = 'choix';
+  filtreSelectDate.className = 'filtre-select-date';
+  
+  const filtreDefaultOptionDate = document.createElement('option');
+  filtreDefaultOptionDate.value = '';
+  filtreDefaultOptionDate.disabled = true;
+  filtreDefaultOptionDate.selected = true;
+  filtreDefaultOptionDate.textContent = 'Filtrer par date';
+  filtreSelectDate.appendChild(filtreDefaultOptionDate);
+  
+  ['all','day', 'week', 'month','custom'].forEach(type => {
+    const option = document.createElement('option');
+    option.value = type;
+    option.textContent = type.charAt(0).toUpperCase() + type.slice(1);
+    filtreSelectDate.appendChild(option);
+  });
+  
+  
+  
+  /*filtreSelectDate.addEventListener('change', async () => {
+    const range = document.getElementById('filtre-date').value;
+    const type = document.getElementById('filtre').value;
+    let payload = {};
+    if (type){
+      payload = {"type": type };
+    }
+    if (range){
+      payload["range"] = range;
+    }
+    handleNavigation('#historiques', payload, type, range);
+  });*/
+  
+  filtreContainerDate.appendChild(filtreIconDate);
+  //filtreContainerDate.appendChild(filtreSelectDate);
+
+  return [filtreSelectDate,filtreContainerDate]
+}
 // Chart creation function
 export function createFinancialChart(stats) {
-  const ctx = document.getElementById('financialChart');
+  const ctx = document.getElementById('financialChart1');
   if (!ctx) return;
   
   // Destroy existing chart if it exists
-  if (window.financialChart) {
-    window.financialChart.destroy();
-  }
+  //if (window.financialChart) {
+  //  window.financialChart.destroy();
+  //}
   
   window.financialChart = new Chart(ctx, {
     type: 'doughnut',
@@ -452,3 +526,302 @@ export function createFinancialChart(stats) {
   });
 }
 
+export function createFinancialChart3(type,stats,id) {
+  const ctx = document.getElementById(id);
+  if (!ctx) return;
+  
+  // Destroy existing chart if it exists
+  //if (window.financialChart) {
+  //  window.financialChart.destroy();
+  //}
+  
+  window.financialChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: Object.keys(stats),
+        datasets: [{
+            label: 'Pourcentage (%)',
+            data: Object.values(stats),
+            backgroundColor: ['#36A2EB', '#FF6384'],
+            borderColor: ['#36A2EB', '#FF6384'],
+            borderWidth: 1
+        }]
+    },
+    options: {
+        indexAxis: 'y', // Orientation horizontale
+        responsive: true,
+        plugins: {
+            title: { display: true, text: 'Répartition des ' + type + 's (%)' }
+        },
+        scales: {
+            x: { beginAtZero: true, max: 100 }
+        }
+    }
+  });
+}
+
+
+export function createFinancialChart2(type, stats, id, options = {}) {
+  const ctx = document.getElementById(id);
+  console.warn("stats keys",Object.values(stats));
+  if (!ctx) {
+    console.error(`Canvas element with id "${id}" not found`);
+    return null;
+  }
+
+  // Destruction propre du graphique existant Object.keys(stats)
+  if (window.financialCharts && window.financialCharts[id]) {
+    window.financialCharts[id].destroy();
+  }
+  
+  // Initialisation du stockage des graphiques
+  if (!window.financialCharts) {
+    window.financialCharts = {};
+  }
+
+  // Configuration des couleurs professionnelles
+  const colorPalette = options.colors || [
+    '#4F46E5', // Indigo moderne
+    '#06B6D4', // Cyan
+    '#10B981', // Emerald
+    '#F59E0B', // Amber
+    '#EF4444', // Red
+    '#8B5CF6', // Violet
+    '#EC4899', // Pink
+    '#84CC16', // Lime
+    '#F97316', // Orange
+    '#6B7280'  // Gray
+  ];
+
+  // Génération des couleurs avec transparence
+  const backgroundColors = Object.keys(stats).map((_, index) => {
+    const color = colorPalette[index % colorPalette.length];
+    return color + '20'; // 20 pour 12.5% d'opacité
+  });
+  
+  const borderColors = Object.keys(stats).map((_, index) => {
+    return colorPalette[index % colorPalette.length];
+  });
+
+  // Configuration du graphique
+  const chartConfig = {
+    type: options.chartType || 'bar',
+    data: {
+      labels: Object.keys(stats),
+      datasets: [{
+        label: options.dataLabel || `Pourcentage (%)`,
+        data: Object.values(stats),
+        backgroundColor: backgroundColors,
+        borderColor: borderColors,
+        borderWidth: 2,
+        borderRadius: 6,
+        borderSkipped: false,
+        // Effet de hover
+        hoverBackgroundColor: borderColors.map(color => color + '40'),
+        hoverBorderColor: borderColors,
+        hoverBorderWidth: 3,
+      }]
+    },
+    options: {
+      indexAxis: 'y' ,
+      responsive: true,
+      maintainAspectRatio: false,
+      
+      // Configuration des animations
+      animation: {
+        duration: 1000,
+        easing: 'easeInOutQuart'
+      },
+      
+      // Interactions
+      interaction: {
+        intersect: false,
+        mode: 'index'
+      },
+      
+      // Plugins
+      plugins: {
+        title: {
+          display: true,
+          text: options.title || `Répartition des ${type}s (%)`,
+          font: {
+            size: 18,
+            weight: 'bold',
+            family: "'Inter', 'Segoe UI', sans-serif"
+          },
+          color: '#1F2937',
+          padding: { bottom: 30 }
+        },
+        
+        legend: {
+          display: options.showLegend !== false,
+          position: 'top',
+          align: 'end',
+          labels: {
+            usePointStyle: true,
+            pointStyle: 'circle',
+            padding: 20,
+            font: {
+              size: 12,
+              family: "'Inter', 'Segoe UI', sans-serif"
+            },
+            color: '#4B5563'
+          }
+        },
+        
+        tooltip: {
+          enabled: true,
+          backgroundColor: 'rgba(17, 24, 39, 0.95)',
+          titleColor: '#F9FAFB',
+          bodyColor: '#F9FAFB',
+          borderColor: '#374151',
+          borderWidth: 1,
+          cornerRadius: 8,
+          padding: 12,
+          font: {
+            family: "'Inter', 'Segoe UI', sans-serif"
+          },
+          callbacks: {
+            label: function(context) {
+              const value = context.parsed[options.horizontal ? 'x' : 'y'];
+              return ` ${context.dataset.label}: ${value.toFixed(1)}%`;
+            }
+          }
+        }
+      },
+      
+      // Configuration des axes
+      scales: {
+        x: {
+          beginAtZero: true,
+          max: options.maxValue || 100,
+          grid: {
+            color: '#F3F4F6',
+            lineWidth: 1,
+            drawBorder: false
+          },
+          ticks: {
+            font: {
+              size: 11,
+              family: "'Inter', 'Segoe UI', sans-serif"
+            },
+            color: '#6B7280',
+            callback: function(value) {
+              return value + '%';
+            }
+          },
+          title: {
+            display: options.xAxisTitle !== false,
+            text: options.xAxisTitle || 'Pourcentage (%)',
+            font: {
+              size: 12,
+              weight: '600',
+              family: "'Inter', 'Segoe UI', sans-serif"
+            },
+            color: '#374151'
+          }
+        },
+        
+        y: {
+          grid: {
+            color: options.horizontal ? '#F3F4F6' : 'transparent',
+            lineWidth: 1,
+            drawBorder: false
+          },
+          ticks: {
+            font: {
+              size: 11,
+              family: "'Inter', 'Segoe UI', sans-serif"
+            },
+            color: '#6B7280',
+            maxRotation: 0,
+            callback: function(value, index) {
+              const label = this.getLabelForValue(value);
+              // Tronquer les labels trop longs
+              return label.length > 20 ? label.substring(0, 20) + '...' : label;
+            }
+          },
+          title: {
+            display: options.yAxisTitle !== false && options.horizontal,
+            text: options.yAxisTitle || 'Catégories',
+            font: {
+              size: 12,
+              weight: '600',
+              family: "'Inter', 'Segoe UI', sans-serif"
+            },
+            color: '#374151'
+          }
+        }
+      },
+      
+      // Layout et espacement
+      layout: {
+        padding: {
+          top: 10,
+          right: 20,
+          bottom: 10,
+          left: 10
+        }
+      }
+    }
+  };
+
+  // Ajustements spécifiques pour les graphiques horizontaux
+  if (options.horizontal) {
+    chartConfig.options.indexAxis = 'y';
+    chartConfig.options.scales.x.title.text = options.xAxisTitle || 'Pourcentage (%)';
+    chartConfig.options.scales.y.title.display = false;
+  }
+
+  try {
+    // Création du graphique
+    const chart = new Chart(ctx, chartConfig);
+    
+    // Stockage de la référence
+    window.financialCharts[id] = chart;
+    
+    // Ajout d'une classe CSS pour le styling du container
+    ctx.parentElement.classList.add('financial-chart-container');
+    
+    return chart;
+    
+  } catch (error) {
+    console.error('Erreur lors de la création du graphique:', error);
+    return null;
+  }
+}
+
+
+
+// Pour l'afficher avec animation
+/*export function showDatePicker() {
+    const customDiv = document.getElementById('customDate');
+    if (customDiv){
+      customDiv.style.display = 'block';
+      console.warn("Succes ...........",customDiv.style.display )
+    }else{
+      console.warn("Echec ...........")
+    }
+    
+    //setTimeout(() => customDiv.classList.add('show'), 30);
+}
+*/
+
+export function showDatePicker(customDiv) {
+    // const customDiv = document.getElementById('customDate');
+    if (customDiv) {
+        customDiv.style.display = 'block';
+        customDiv.style.visibility = 'visible';
+        customDiv.style.opacity = '1';
+    } else {
+        console.warn("Echec ...........");
+    }
+}
+
+export function hideDatePicker(customDiv) {
+    if (customDiv) {
+        customDiv.style.display = 'none';
+        customDiv.style.visibility = 'hidden';
+        customDiv.style.opacity = '0';
+    }
+}

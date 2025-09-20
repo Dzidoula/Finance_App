@@ -8,6 +8,7 @@ collection = "historiques"
 def add_historiques(jobpayload):
     db = get_db()
     jobpayload["id"] = str(uuid4())
+    jobpayload["sous_categorie"] = jobpayload["sous_categorie"].lower()
     jobpayload["created_date"] = datetime.datetime.now().strftime("%Y-%m-%dT%H:%M:%S")
     add_in_collection(db,jobpayload)
     payload_sous_categorie ={
@@ -63,7 +64,7 @@ def get_historiques(payload):
     db = get_db()
 
     # Base filters
-    status_match = {"$match": {"status": 1}}
+    status_match = {"$match": {"status": payload.get("status")}}
     type_filter = payload.get("type")
     if type_filter:
         status_match["$match"]["type"] = type_filter
@@ -92,7 +93,7 @@ def get_historiques(payload):
     pipeline.append(status_match)
 
     # Date range match if provided
-    if start_dt and end_dt:
+    if (start_dt and end_dt):
         pipeline.append({
             "$match": {
                 "parsedTimestamp": {
@@ -101,6 +102,7 @@ def get_historiques(payload):
                 }
             }
         })
+        
 
     # Sort and project
     pipeline.append({"$sort": {"parsedTimestamp": -1}})

@@ -39,7 +39,9 @@ def edit_sous_categories(db,payload):
                 "$project":{
                 "verification":{
                     "$cond":{
-                    "if":"$verification",
+                    "if":{
+                        "$gte":[{"$size":"$verification"}, 1]
+                    },
                     "then": True,
                     "else": False
                     }
@@ -51,5 +53,6 @@ def edit_sous_categories(db,payload):
     print("result ................ ", result)
     if not result[0]["verification"]:
         db["sous_category"].update_one(query,{"$push":{payload['type']:payload['sous_categorie'].lower()}})
+    
     
     pass
