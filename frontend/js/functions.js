@@ -106,43 +106,60 @@ export async function afficherListe(liste, container = null) {
     
     
 
-    const ul = document.createElement('ul');
-    ul.id = 'historiques-liste';
-    // Vider la liste existante
-    ul.innerHTML = '';
+    const table = document.createElement('table');
+    table.id = 'historiques-table';
+
+    // Create thead
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    ['Type', 'Sous-Catégorie', 'Date', 'Montant', 'Actions'].forEach(headerText => {
+      const th = document.createElement('th');
+      th.textContent = headerText;
+      headerRow.appendChild(th);
+    });
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+
+    // Create tbody
+    const tbody = document.createElement('tbody');
+
     const copie_liste = liste;
     // Parcourir les transactions
     liste.forEach((item,index) => {
     if (item){   
-      const li = document.createElement('li');
-      li.className = 'transaction-card';
-      li.dataset.index = index;
+      const tr = document.createElement('tr');
+      tr.dataset.index = index;
 
-      // Créer la partie info (catégorie, sous-catégorie, date, icône)
-      const infoDiv = document.createElement('div');
-      infoDiv.className = 'transaction-info';
+      // Type
+      const typeTd = document.createElement('td');
+      typeTd.className = `category ${item.type === 'revenu' ? 'green' : 'red'}`;
+      typeTd.textContent = item.type;
+      tr.appendChild(typeTd);
 
-      const categorySpan = document.createElement('span');
-      categorySpan.className = `category ${item.type === 'revenu' ? 'green' : 'red'}`;
-      categorySpan.textContent = item.type;
+      // Sous-Catégorie
+      const subCategoryTd = document.createElement('td');
+      subCategoryTd.className = 'subcategory';
+      subCategoryTd.textContent = item.sous_categorie;
+      tr.appendChild(subCategoryTd);
 
-      const subCategorySpan = document.createElement('span');
-      subCategorySpan.className = 'subcategory';
-      subCategorySpan.textContent = item.sous_categorie;
+      // Date
+      const dateTd = document.createElement('td');
+      dateTd.className = 'date';
+      dateTd.textContent = item.created_date;
+      tr.appendChild(dateTd);
 
-      const dateSpan = document.createElement('span');
-      dateSpan.className = 'date';
-      dateSpan.textContent = item.created_date;
+      // Montant
+      const amountTd = document.createElement('td');
+      amountTd.className = `amount ${item.type === 'revenu' ? 'green' : 'red'}`;
+      amountTd.textContent = `${item.type === 'revenu' ? '+' : '-'}${Math.abs(item.montant)} F`;
+      tr.appendChild(amountTd);
 
-      //const iconSpan = document.createElement('span');
-      //iconSpan.className = 'icon';
-      //iconSpan.textContent = item.icone;
-
+      // Actions
+      const actionsTd = document.createElement('td');
       const corbeilleBouton = document.createElement('button');
       corbeilleBouton.className = 'supprimer';
       corbeilleBouton.innerHTML = '<i class="fas fa-trash"></i>';
 
-      // Ajouter un event class="fas fa-trash"></i> 
       corbeilleBouton.addEventListener('click',()=>{
         const index_id = copie_liste[index]["id"];
         copie_liste.fill('',index,index+1);
@@ -154,27 +171,19 @@ export async function afficherListe(liste, container = null) {
         };
         const result = deleteData(del_payload);
         console.log("Suppression .............  index_id  ...............", result)
-        suppression_tache(index, li);
+        suppression_tache(index, tr);
       });
       
-      infoDiv.appendChild(categorySpan);
-      infoDiv.appendChild(subCategorySpan);
-      infoDiv.appendChild(dateSpan);
-      //infoDiv.appendChild(iconSpan);
+      actionsTd.appendChild(corbeilleBouton);
+      tr.appendChild(actionsTd);
 
-      // Créer la partie montant
-      const amountSpan = document.createElement('span');
-      amountSpan.className = `amount ${item.type === 'revenu' ? 'green' : 'red'}`;
-      amountSpan.textContent = `${item.type === 'revenu' ? '+' : '-'}${Math.abs(item.montant)} F`;
-
-      // Ajouter les éléments au <li>
-      li.appendChild(infoDiv);
-      li.appendChild(amountSpan);
-      li.appendChild(corbeilleBouton);
-      ul.appendChild(li);
-      
-      section_affichage.appendChild(ul);}
+      tbody.appendChild(tr);
+    }
     });
+
+    table.appendChild(tbody);
+    section_affichage.appendChild(table);
+
     console.log('Liste ajoutée au DOM');
   } catch (error) {
     console.error('Erreur :', error);
