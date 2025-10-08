@@ -1,0 +1,37 @@
+[
+  {
+    "categorie": "Salaire",
+    "sousCategorie": "Salaire mensuel",
+    "date": "📅 01/01/2025",
+    "montant": 3500.00,
+    "icone": ""
+  },
+  {
+    "categorie": "Alimentation",
+    "sousCategorie": "Courses de la semaine",
+    "date": "📅 03/01/2025",
+    "montant": -450.00,
+    "icone": ""
+  },
+  {
+    "categorie": "Transport",
+    "sousCategorie": "Plein d'essence",
+    "date": "📅 04/01/2025",
+    "montant": -120.00,
+    "icone": ""
+  },
+  {
+    "categorie": "Freelance",
+    "sousCategorie": "Mission freelance",
+    "date": "📅 05/01/2025",
+    "montant": 500.00,
+    "icone": ""
+  },
+  {
+    "categorie": "Divertissement",
+    "sousCategorie": "Restaurant",
+    "date": "📅 06/01/2025",
+    "montant": -80.00,
+    "icone": ""
+  }
+]

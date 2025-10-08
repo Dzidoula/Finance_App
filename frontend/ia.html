@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat avec Ollama via Falcon</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        #response { border: 1px solid #ccc; padding: 10px; height: 200px; overflow-y: auto; white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>Chat avec Ollama</h1>
+    <input type="text" id="messageInput" placeholder="Entrez votre message" style="width: 70%;">
+    <button onclick="sendMessage()">Envoyer </button>
+    
+    <div id="response"></div>
+
+    <script>
+        async function sendMessage() {
+            const message = document.getElementById('messageInput').value;
+            const responseElement = document.getElementById('response');
+            responseElement.innerHTML = ''; // Réinitialiser l'affichage
+
+            if (!message) {
+                responseElement.innerHTML = 'Veuillez entrer un message.';
+                return;
+            }
+
+            const endpoint = "http://localhost:8000/ollama";
+            console.log(`Envoi de la requête vers : ${endpoint}`);
+
+            try {
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ "message":message })
+                });
+
+                console.log('Statut de la réponse:', response.status, response.statusText);
+                console.log('En-têtes de la réponse:', [...response.headers.entries()]);
+
+                if (!response.ok) {
+                    throw new Error(`Erreur HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                
+                const data = await response.json();
+                if (data.error) {
+                    responseElement.innerHTML = `Erreur : ${data.error}`;
+                } else {
+                    responseElement.innerHTML = data.response;
+                }
+                responseElement.scrollTop = responseElement.scrollHeight;
+            
+            } catch (error) {
+                console.error('Erreur lors de la requête:', error);
+                responseElement.innerHTML = `Erreur lors de l'envoi : ${error.message}.`;
+            }
+        }
+    </script>
+</body>
+</html>
