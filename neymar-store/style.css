@@ -455,6 +455,73 @@ section { padding: 80px 0; }
 .footer-bottom p { font-size: 0.78rem; color: var(--muted); }
 
 /* ==============================
+   STRIPE BUTTON
+============================== */
+.btn-stripe {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #635BFF;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.95rem;
+  padding: 14px 28px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+  white-space: nowrap;
+  width: 100%;
+  text-align: center;
+}
+.btn-stripe:hover {
+  background: #4f46e5;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(99,91,255,0.35);
+}
+
+/* ==============================
+   TRUST STRIP
+============================== */
+.trust-strip {
+  background: rgba(99,91,255,0.06);
+  border-top: 1px solid rgba(99,91,255,0.15);
+  border-bottom: 1px solid rgba(99,91,255,0.15);
+  padding: 16px 0;
+}
+.trust-strip-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 36px;
+  flex-wrap: wrap;
+}
+.trust-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+.trust-item svg { color: #635BFF; flex-shrink: 0; }
+
+/* ==============================
+   MODAL SECURE NOTE
+============================== */
+.modal-secure-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-top: 10px;
+  justify-content: center;
+  text-align: center;
+}
+.modal-secure-note svg { flex-shrink: 0; color: #635BFF; }
+
+/* ==============================
    CART SIDEBAR
 ============================== */
 .cart-overlay {

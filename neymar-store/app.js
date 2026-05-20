@@ -103,6 +103,27 @@ const PRODUCTS = [
 ];
 
 // ==============================
+// STRIPE PAYMENT LINKS CONFIG
+// Une fois votre compte Stripe créé (stripe.com), créez un Payment Link
+// par produit dans le dashboard et remplacez chaque URL ci-dessous.
+// ==============================
+const STRIPE_LINKS = {
+  1: 'https://buy.stripe.com/REMPLACEZ_PRODUIT_1',
+  2: 'https://buy.stripe.com/REMPLACEZ_PRODUIT_2',
+  3: 'https://buy.stripe.com/REMPLACEZ_PRODUIT_3',
+  4: 'https://buy.stripe.com/REMPLACEZ_PRODUIT_4',
+  5: 'https://buy.stripe.com/REMPLACEZ_PRODUIT_5',
+  6: 'https://buy.stripe.com/REMPLACEZ_PRODUIT_6',
+  7: 'https://buy.stripe.com/REMPLACEZ_PRODUIT_7',
+  8: 'https://buy.stripe.com/REMPLACEZ_PRODUIT_8',
+};
+
+function stripeConfigured(productId) {
+  var link = STRIPE_LINKS[productId];
+  return link && link.indexOf('REMPLACEZ') === -1;
+}
+
+// ==============================
 // STATE
 // ==============================
 let cart = [];
@@ -231,6 +252,15 @@ function openSizeModal(productId) {
   addBtn.disabled = true;
   addBtn.style.opacity = '0.5';
 
+  // Adapter le bouton selon la configuration Stripe
+  if (stripeConfigured(pendingProduct.id)) {
+    addBtn.className = 'btn-stripe full-width';
+    addBtn.innerHTML = stripeLogo() + ' Payer maintenant';
+  } else {
+    addBtn.className = 'btn-primary full-width';
+    addBtn.innerHTML = 'Ajouter au panier';
+  }
+
   var grid = document.getElementById('sizeGrid');
   grid.innerHTML = '';
 
@@ -243,6 +273,10 @@ function openSizeModal(productId) {
   });
 
   document.getElementById('modalOverlay').classList.add('active');
+}
+
+function stripeLogo() {
+  return '<svg width="38" height="16" viewBox="0 0 62 26" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline;vertical-align:middle;margin-right:6px"><path fill="#fff" d="M5.4 10.2c0-.7.6-1 1.5-1 1.4 0 3.1.4 4.5 1.1V6.4A12 12 0 0 0 6.9 6C3 6 .4 8 .4 10.5c0 3.9 5.4 3.3 5.4 5 0 .8-.7 1-1.7 1-1.5 0-3.4-.6-4.9-1.4v3.9c1.7.7 3.4 1 4.9 1C7.3 20 10 18.1 10 15.4c0-4.2-4.6-3.4-4.6-5.2zm11.5-7.8L12.5 3l-.1 13.3c0 2.4 1.8 4.2 4.2 4.2 1.3 0 2.3-.3 2.8-.5v-3.3c-.5.2-3 .9-3-1.4V9.3h3V6H16.4l.1-3.6zM26.5 7.3l-.3-1.3h-3.5V20H27V11c.8-1.1 2.2-.9 2.6-.7V6c-.5-.2-2.2-.5-3.1 1.3zM31 6h4.4v14H31zm2.2-1.6c1.4 0 2.5-1.1 2.5-2.4C35.7 .7 34.6 0 33.2 0s-2.4 1.1-2.4 2.4c0 1.3 1 1.9 2.4 2zm15-1L43.5 14 40 3.4h-4.7l5.5 16.6H45l5.5-16.6H48zM62 13c0-4-2-7-5.8-7-3.8 0-6.1 3-6.1 7 0 4.6 2.6 7 6.4 7 1.9 0 3.3-.4 4.3-1v-3.2c-1 .5-2.2.8-3.7.8-1.5 0-2.8-.5-3-2.2H62V13zm-7.9-1.5c0-1.6.9-2.3 2-2.3 1.1 0 2 .7 2 2.3h-4z"/></svg>';
 }
 
 function selectSize(size, btn) {
@@ -267,8 +301,20 @@ document.getElementById('modalOverlay').addEventListener('click', function(e) {
 
 function confirmAddToCart() {
   if (!pendingProduct || !selectedSize) return;
-  addToCart(pendingProduct, selectedSize);
-  closeModal();
+
+  if (stripeConfigured(pendingProduct.id)) {
+    // Redirection vers Stripe Payment Link avec la taille en paramètre
+    var link = STRIPE_LINKS[pendingProduct.id];
+    // Stripe Payment Links acceptent prefilled_custom_field si activé dans le dashboard
+    var url = link + '?prefilled_custom_field_1=' + encodeURIComponent('Taille: ' + selectedSize) + '&locale=fr';
+    window.open(url, '_blank', 'noopener');
+    showToast('Redirection vers le paiement sécurisé Stripe...');
+    closeModal();
+  } else {
+    // Stripe non configuré : ajout au panier classique
+    addToCart(pendingProduct, selectedSize);
+    closeModal();
+  }
 }
 
 // ==============================
@@ -360,10 +406,23 @@ function toggleCart() {
 // ==============================
 function checkout() {
   if (cart.length === 0) return;
-  alert('Merci pour votre commande !\n\nCette démo ne traite pas de paiements réels.\nDans la version complète, vous seriez redirigé vers notre processeur de paiement sécurisé.');
-  cart = [];
-  updateCartUI();
-  toggleCart();
+
+  var configured = cart.filter(function(item) { return stripeConfigured(item.product.id); });
+  var notConfigured = cart.filter(function(item) { return !stripeConfigured(item.product.id); });
+
+  if (configured.length > 0) {
+    // Ouvrir le Payment Link Stripe pour chaque article configuré
+    configured.forEach(function(item) {
+      var link = STRIPE_LINKS[item.product.id];
+      var url = link + '?prefilled_custom_field_1=' + encodeURIComponent('Taille: ' + item.size) + '&locale=fr';
+      window.open(url, '_blank', 'noopener');
+    });
+    showToast('Paiement Stripe ouvert pour ' + configured.length + ' article(s).');
+  }
+
+  if (notConfigured.length > 0) {
+    showToast('Certains articles n\'ont pas encore de lien Stripe configuré.');
+  }
 }
 
 // ==============================

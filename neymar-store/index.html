@@ -112,6 +112,28 @@
     </div>
   </section>
 
+  <!-- ======= TRUST BADGES ======= -->
+  <div class="trust-strip">
+    <div class="container trust-strip-inner">
+      <div class="trust-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Paiement SSL sécurisé
+      </div>
+      <div class="trust-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Stripe — standard bancaire mondial
+      </div>
+      <div class="trust-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+        Visa · Mastercard · PayPal acceptés
+      </div>
+      <div class="trust-item">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+        Retours gratuits 30 jours
+      </div>
+    </div>
+  </div>
+
   <!-- ======= FEATURES ======= -->
   <section class="features" id="features">
     <div class="container">
@@ -256,7 +278,10 @@
         <span>Total</span>
         <span id="cartTotal">0,00 €</span>
       </div>
-      <button class="btn-primary full-width" onclick="checkout()">Commander maintenant</button>
+      <button class="btn-stripe full-width" onclick="checkout()">
+        <svg width="34" height="14" viewBox="0 0 62 26" fill="none" xmlns="http://www.w3.org/2000/svg" style="display:inline;vertical-align:middle;margin-right:6px"><path fill="#fff" d="M5.4 10.2c0-.7.6-1 1.5-1 1.4 0 3.1.4 4.5 1.1V6.4A12 12 0 0 0 6.9 6C3 6 .4 8 .4 10.5c0 3.9 5.4 3.3 5.4 5 0 .8-.7 1-1.7 1-1.5 0-3.4-.6-4.9-1.4v3.9c1.7.7 3.4 1 4.9 1C7.3 20 10 18.1 10 15.4c0-4.2-4.6-3.4-4.6-5.2zm11.5-7.8L12.5 3l-.1 13.3c0 2.4 1.8 4.2 4.2 4.2 1.3 0 2.3-.3 2.8-.5v-3.3c-.5.2-3 .9-3-1.4V9.3h3V6H16.4l.1-3.6zM26.5 7.3l-.3-1.3h-3.5V20H27V11c.8-1.1 2.2-.9 2.6-.7V6c-.5-.2-2.2-.5-3.1 1.3zM31 6h4.4v14H31zm2.2-1.6c1.4 0 2.5-1.1 2.5-2.4C35.7.7 34.6 0 33.2 0s-2.4 1.1-2.4 2.4c0 1.3 1 1.9 2.4 2zm15-1L43.5 14 40 3.4h-4.7l5.5 16.6H45l5.5-16.6H48zM62 13c0-4-2-7-5.8-7-3.8 0-6.1 3-6.1 7 0 4.6 2.6 7 6.4 7 1.9 0 3.3-.4 4.3-1v-3.2c-1 .5-2.2.8-3.7.8-1.5 0-2.8-.5-3-2.2H62V13zm-7.9-1.5c0-1.6.9-2.3 2-2.3 1.1 0 2 .7 2 2.3h-4z"/></svg>
+        Payer maintenant
+      </button>
       <button class="btn-ghost full-width" onclick="toggleCart()">Continuer mes achats</button>
     </div>
   </aside>
@@ -273,6 +298,10 @@
       <p id="modalProductName"></p>
       <div class="size-grid" id="sizeGrid"></div>
       <button class="btn-primary full-width" id="addToCartBtn" onclick="confirmAddToCart()">Ajouter au panier</button>
+      <p class="modal-secure-note">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Paiement 100% sécurisé par Stripe. Vos données ne transitent jamais sur notre serveur.
+      </p>
     </div>
   </div>
 
